@@ -4,13 +4,15 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import unimelb.bitbox.util.FileSystemManager;
 import unimelb.bitbox.util.HostPort;
 
 
 class Client {
 	Socket Socket = null;
 	String [] hostPorts;
-	public Client (String peers) {
+	
+	public Client (String peers, FileSystemManager fileSystemManager) {
 		hostPorts = peers.split(",");
 		//int len = length(IPAddress)
 		try {
@@ -19,12 +21,12 @@ class Client {
 		  int len = hostPorts.length;
 		  while(len > 0){
 			HostPort HP = new HostPort(hostPorts[len-1]);
-			//Socket = new Socket(HP.host, HP.port);
-		    //Socket = new Socket("45.113.235.237", 8111);
-			//Socket = new Socket("localhost", 5555);
-			Socket = new Socket("localhost", 5555);
+//			Socket = new Socket(HP.host, HP.port);
+		    //Socket = new Socket("10.13.58.203", 5555);
+//			Socket = new Socket("localhost", 3001);
+			Socket = new Socket("43.240.97.106", 3000);
 			System.out.println("Connection established");
-			new Threads(Socket, 0, "Client");
+			new Threads(Socket, 0, "Client", fileSystemManager);
 			// Get the input/output streams for reading/writing data from/to the socket
 			len--;
 		  }

@@ -7,12 +7,10 @@ import java.util.logging.Logger;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.net.UnknownHostException;
 
 import unimelb.bitbox.util.Configuration;
 import unimelb.bitbox.util.FileSystemManager;
 import unimelb.bitbox.util.FileSystemObserver;
-import unimelb.bitbox.util.HostPort;
 import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
 
 public class ServerMain implements FileSystemObserver {
@@ -23,16 +21,17 @@ public class ServerMain implements FileSystemObserver {
 	Socket Socket = null;
 	String peers;
 	int port;
-	private static int i = 0;
+	Threads [] th;
 	
 	public ServerMain() throws NumberFormatException, IOException, NoSuchAlgorithmException {
 		fileSystemManager=new FileSystemManager(Configuration.getConfigurationValue("path"),this);
-		
-		//client(Configuration.getConfigurationValue(peers));
-		new Client(Configuration.getConfigurationValue("peers"));
+		new Client(Configuration.getConfigurationValue("peers"), fileSystemManager);
 
 		//Server
 		port = Integer.parseInt(Configuration.getConfigurationValue("port"));
+		int max = Integer.parseInt(Configuration.getConfigurationValue("maximumIncomingConnections"));
+		th = new Threads [max+1];
+		
 		try {
 			//Create a server socket listening on port 4444
 			listeningSocket = new ServerSocket(4444);
@@ -42,8 +41,13 @@ public class ServerMain implements FileSystemObserver {
 			while (true) {
 				//Accept an incoming client connection request 
 				Socket = listeningSocket.accept(); //This method will block until a connection request is received
-				this.i++;
-				new Threads(Socket, i,  "Server");
+				for(int j=0;j<max+1;j++) {
+					if(th[j] == null || !th[j].isAlive()) {
+						System.out.println(j);
+						th[j] = new Threads(Socket, j,  "Server", fileSystemManager);
+						break;
+					}
+				}
 			}
 		} catch (SocketException ex) {
 			ex.printStackTrace();
@@ -63,7 +67,12 @@ public class ServerMain implements FileSystemObserver {
 
 	@Override
 	public void processFileSystemEvent(FileSystemEvent fileSystemEvent) {
-		// TODO: process events
-	}
-	
+		int max = Integer.parseInt(Configuration.getConfigurationValue("maximumIncomingConnections"));
+		for(int i=0; i<max ;i++){
+			if(th[i]!=null && th[i].isAlive()){
+				th[i].Request(fileSystemEvent);
+				System.out.println(fileSystemEvent.event);
+			}
+		}
+	}	
 }

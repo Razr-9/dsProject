@@ -7,9 +7,15 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.Scanner;
+import java.nio.ByteBuffer;
+import java.security.NoSuchAlgorithmException;
 
 import unimelb.bitbox.util.Configuration;
+import unimelb.bitbox.util.Document;
+import unimelb.bitbox.util.FileSystemManager;
+import org.json.simple.*;
+
+import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
 
 class Threads extends Thread{
 	BufferedReader In;
@@ -19,19 +25,19 @@ class Threads extends Thread{
 	String InputStr = null;
 	
 	String ServerOrClient;
-	int i;
+	FileSystemManager fileSystemManager;
+	FileSystemEvent fileSystemEvent;
+	int j;
 	
-	Scanner scanner = new Scanner(System.in);
-	String inputStr = null;
-	
-	public Threads(Socket Socket, int i, String ServerOrClient) {
+	public Threads(Socket Socket, int j, String ServerOrClient, FileSystemManager fileSystemManager) {
 		try {
 		//Get the input/output streams for reading/writing data from/to the socket
 			In = new BufferedReader(new InputStreamReader(Socket.getInputStream(), "UTF-8"));
 			Out = new BufferedWriter(new OutputStreamWriter(Socket.getOutputStream(), "UTF-8"));
 			this.ServerOrClient = ServerOrClient;
 			this.Socket = Socket;
-			this.i = i;
+			this.fileSystemManager = fileSystemManager;
+			this.j = j;
 		} catch (SocketException ex) {
 			ex.printStackTrace();
 		} catch (IOException e) {
@@ -47,10 +53,14 @@ class Threads extends Thread{
 		//one is processed unless...we use threads!
 		try {
 			if(ServerOrClient=="Server") {
-				if(i < Integer.parseInt(Configuration.getConfigurationValue("maximumIncomingConnections"))) {
-					while((Msg = In.readLine()) != null) {
-						//JSON
-						
+				if(j < Integer.parseInt(Configuration.getConfigurationValue("maximumIncomingConnections"))) {
+					if(Document.parse((Msg = In.readLine())).get("command").equals("HANDSHAKE_REQUEST")) {
+						Out.write(new JSON().marshaling("HANDSHAKE_RESPONSE")+"\n");
+						Out.flush();
+						while((Msg = In.readLine()) != null) {
+							//JSON:
+							Respond(Msg);
+						}
 					}
 				}
 				else {
@@ -62,13 +72,11 @@ class Threads extends Thread{
 			else if (ServerOrClient=="Client") {
 				Out.write(new JSON().marshaling("HANDSHAKE_REQUEST")+"\n");
 				Out.flush();
-				while((Msg = In.readLine()) != null) {
-					//JSON
-					// Receive the reply from the server by reading from the socket input stream
-					String Received = In.readLine(); // This method blocks until there
-													// is something to read from the
-													// input stream
-					System.out.println("Message received: " + Received);
+				if(Document.parse((Msg = In.readLine())).get("command").equals("HANDSHAKE_RESPONSE")) {
+					while(!Document.parse((Msg = In.readLine())).get("command").equals("INVALID_PROTOCOL")) {
+						//JSON:
+						Respond(Msg);
+					}
 				}
 			}
 			Socket.close();
@@ -78,4 +86,129 @@ class Threads extends Thread{
 			e.printStackTrace();
 		}
 	}
+
+	public void Respond(String message){
+		try {
+			//DIRECTORY_CREATE_REQUEST -> DIRECTORY_CREATE_RESPONSE
+			if(Document.parse(message).get("command").equals("DIRECTORY_CREATE_REQUEST")) {
+				String pathName = Document.parse(message).get("pathName").toString();
+				Document Doc = new Document();
+				Doc.append("command", "DIRECTORY_CREATE_RESPONSE");
+				Doc.append("pathName", pathName);
+				if(!fileSystemManager.dirNameExists(pathName)){
+					if(fileSystemManager.isSafePathName(pathName)) {
+						if(fileSystemManager.makeDirectory(pathName)) {
+							Doc.append("message", "directory created");
+							Doc.append("status", true);
+						}
+						else {
+							Doc.append("message", "there was a problem creating the directory");
+							Doc.append("status", false);
+						}
+					}
+					else {
+						Doc.append("message", "unsafe pathname given");
+						Doc.append("status", false);
+					}
+				}
+				else {
+					Doc.append("message", "pathname already exists");
+					Doc.append("status", false);
+				}
+				System.out.println(Doc.toJson());
+				Out.write(Doc.toJson()+"\n");
+				Out.flush();
+			}
+			
+			if(Document.parse(message).get("command").toString().equals("FILE_CREATE_REQUEST")) {
+				String pathName = Document.parse(message).get("pathName").toString();
+				String fileDes = ((Document) Document.parse(message).get("fileDescriptor")).toJson();
+				String md5 = Document.parse(fileDes).get("md5").toString();
+//				String pathName = fileSystemManager.loadingSuffix;
+				long length = Document.parse(fileDes).getLong("fileSize");
+			
+				long lastModified = Document.parse(fileDes).getLong("lastModified");
+				Document Doc = new Document();
+				Doc.append("command", "FILE_CREATE_RESPONSE");
+				Doc.append("fileDescriptor", fileDes);
+				Doc.append("pathName", pathName);
+				if(!fileSystemManager.fileNameExists(pathName)) {
+					if(fileSystemManager.isSafePathName(pathName)) {
+						try {
+							if(fileSystemManager.createFileLoader(pathName, md5, length, lastModified)) {
+//								if(fileSystemManager.checkShortcut(pathName)){
+									Doc.append("message", "file loader ready");
+									Doc.append("status",true);
+//								}
+						
+							}else {// unsuccessfully create
+								Doc.append("message", "there was a problem creating the file");
+								Doc.append("status",false);
+							}
+						} catch (NoSuchAlgorithmException e) {
+							e.printStackTrace();
+						}
+					}else {//unsave pathname
+						Doc.append("message", "unsafe pathname given");
+						Doc.append("status",false);
+					}
+					
+				}else {//filename exists
+					Doc.append("message", "pathname already exists");
+					Doc.append("status",false);
+				}
+//				System.out.println(fileSystemManager.fileNameExists(pathName,md5));
+				System.out.println(Doc.toJson());
+				Out.write(Doc.toJson()+"\n");
+				Out.flush();
+				
+			}
+			
+			//DIRECTORY_CREATE_REQUEST
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void Request(FileSystemEvent fileSystemEvent) {
+		try {/**
+		 * A new file has been created. The parent directory must
+		 * exist for this event to be emitted.
+		 */
+		//FILE_CREATE,
+			if(fileSystemEvent.event.toString().equals("FILE_CREATE")) {
+				System.out.println(fileSystemEvent.event);
+				Document Doc = new Document();
+				Doc.append("command", "FILE_CREATE_REQUEST");
+				Doc.append("pathName", fileSystemEvent.pathName);
+				Doc.append("fileDescriptor", fileSystemEvent.fileDescriptor.toDoc());
+				Out.write(Doc.toJson()+"\n");
+//				Out.write(fileSystemEvent.event);
+				Out.flush();
+			}
+		
+		/**
+		 * An existing file has been deleted.
+		 */
+		//FILE_DELETE,
+		/**
+		 * An existing file has been modified.
+		 */
+		//FILE_MODIFY,
+		/**
+		 * A new directory has been created. The parent directory must
+		 * exist for this event to be emitted.
+		 */
+		//DIRECTORY_CREATE,
+		/**
+		 * An existing directory has been deleted. The directory must
+		 * be empty for this event to be emitted, and its parent
+		 * directory must exist.
+		 */
+		//DIRECTORY_DELETE
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 }

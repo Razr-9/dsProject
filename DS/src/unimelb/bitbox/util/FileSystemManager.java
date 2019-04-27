@@ -449,7 +449,7 @@ public class FileSystemManager extends Thread {
 							lock.release();
 							channel.close();
 							raf.close();
-							if(read<length) throw new IOException("did not read everything expected");
+//							if(read<length) throw new IOException("did not read everything expected");
 							return bb;
 						}
 						lock.release();
