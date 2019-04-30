@@ -52,6 +52,9 @@ import java.util.logging.Logger;
  * @author Aaron Harwood
  * @author Andrew Linxi Wang (contributions to Windows compatibility)
  */
+public static void main(String[] args) {
+	System.out.println(readFile());
+}
 public class FileSystemManager extends Thread {
 	private static Logger log = Logger.getLogger(FileSystemManager.class.getName());
 	
@@ -431,7 +434,7 @@ public class FileSystemManager extends Thread {
 	 * @throws IOException If there were any problems accessing the file system.
 	 * @throws NoSuchAlgorithmException  If the MD5 hash algorithm is unavailable.
 	 */
-	public ByteBuffer readFile(String md5, long position, long length) throws IOException, NoSuchAlgorithmException {
+	public static ByteBuffer readFile(String md5, long position, long length) throws IOException, NoSuchAlgorithmException {
 		synchronized(this) {
 			if(hashMap.containsKey(md5)) {
 				for(String attempt: hashMap.get(md5)) {
