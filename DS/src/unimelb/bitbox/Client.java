@@ -11,6 +11,8 @@ import unimelb.bitbox.util.HostPort;
 class Client {
 	Socket Socket = null;
 	String [] hostPorts;
+	int len;
+	Threads [] th;
 	
 	public Client (String peers, FileSystemManager fileSystemManager) {
 		hostPorts = peers.split(",");
@@ -18,15 +20,17 @@ class Client {
 		try {
 			// Create a stream socket bounded to any port and connect it to the
 			// socket bound to localhost on port 4444
-		  int len = hostPorts.length;
+		  len = hostPorts.length;
+		  th = new Threads [len];
+		  
 		  while(len > 0){
 			HostPort HP = new HostPort(hostPorts[len-1]);
-//			Socket = new Socket(HP.host, HP.port);
+			Socket = new Socket(HP.host, HP.port);
 		    //Socket = new Socket("10.13.58.203", 5555);
-//			Socket = new Socket("localhost", 3001);
-			Socket = new Socket("43.240.97.106", 3000);
+//			Socket = new Socket("43.240.97.106", 3000);
+//			Socket = new Socket("localhost", 3000);
 			System.out.println("Connection established");
-			new Threads(Socket, 0, "Client", fileSystemManager);
+			th[len-1]= new Threads(Socket, 0, "Client", fileSystemManager);
 			// Get the input/output streams for reading/writing data from/to the socket
 			len--;
 		  }
@@ -36,5 +40,9 @@ class Client {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} 
+	}
+
+	public Threads[] thR() {
+		return th;
 	}
 }

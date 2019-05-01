@@ -21,11 +21,15 @@ public class ServerMain implements FileSystemObserver {
 	Socket Socket = null;
 	String peers;
 	int port;
+	int len;
 	Threads [] th;
+	Threads [] thClient;
 	
 	public ServerMain() throws NumberFormatException, IOException, NoSuchAlgorithmException {
 		fileSystemManager=new FileSystemManager(Configuration.getConfigurationValue("path"),this);
-		new Client(Configuration.getConfigurationValue("peers"), fileSystemManager);
+		
+		peers = Configuration.getConfigurationValue("peers");
+		thClient = new Client(peers, fileSystemManager).thR();
 
 		//Server
 		port = Integer.parseInt(Configuration.getConfigurationValue("port"));
@@ -71,7 +75,13 @@ public class ServerMain implements FileSystemObserver {
 		for(int i=0; i<max ;i++){
 			if(th[i]!=null && th[i].isAlive()){
 				th[i].Request(fileSystemEvent);
-				System.out.println(fileSystemEvent.event);
+			}
+		}
+		if(thClient!=null) {
+			for(int i=0; i<thClient.length ;i++){
+				if(thClient[i]!=null && thClient[i].isAlive()){
+					thClient[i].Request(fileSystemEvent);
+				}
 			}
 		}
 	}	

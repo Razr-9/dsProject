@@ -1,0 +1,12 @@
+{
+    "configurations": [
+        
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - Peer",
+            "request": "launch",
+            "mainClass": "unimelb.bitbox.Peer",
+            "projectName": "bitbox"
+        }
+    ]
+}

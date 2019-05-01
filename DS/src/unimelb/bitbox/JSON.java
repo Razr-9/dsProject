@@ -41,7 +41,6 @@ public class JSON {
 			hostPort.put("host", Configuration.getConfigurationValue("advertisedName"));
 			command.put("hostPort",hostPort);
 		}
-		
 		return command.toJSONString();
 	}
 }

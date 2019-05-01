@@ -9,7 +9,9 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
-
+import java.util.ArrayList;
+import java.util.Base64;
+import java.lang.*;
 import unimelb.bitbox.util.Configuration;
 import unimelb.bitbox.util.Document;
 import unimelb.bitbox.util.FileSystemManager;
@@ -55,10 +57,14 @@ class Threads extends Thread{
 			if(ServerOrClient=="Server") {
 				if(j < Integer.parseInt(Configuration.getConfigurationValue("maximumIncomingConnections"))) {
 					if(Document.parse((Msg = In.readLine())).get("command").equals("HANDSHAKE_REQUEST")) {
+					
 						Out.write(new JSON().marshaling("HANDSHAKE_RESPONSE")+"\n");
 						Out.flush();
+						ArrayList eventSync = fileSystemManager.generateSyncEvents();
+						sendSyncRequest(eventSync);
 						while((Msg = In.readLine()) != null) {
 							//JSON:
+//							System.out.println(Msg);
 							Respond(Msg);
 						}
 					}
@@ -73,8 +79,12 @@ class Threads extends Thread{
 				Out.write(new JSON().marshaling("HANDSHAKE_REQUEST")+"\n");
 				Out.flush();
 				if(Document.parse((Msg = In.readLine())).get("command").equals("HANDSHAKE_RESPONSE")) {
+					ArrayList eventSync = fileSystemManager.generateSyncEvents();
+					sendSyncRequest(eventSync);
+				
 					while(!Document.parse((Msg = In.readLine())).get("command").equals("INVALID_PROTOCOL")) {
 						//JSON:
+//						System.out.println(Msg);
 						Respond(Msg);
 					}
 				}
@@ -85,6 +95,30 @@ class Threads extends Thread{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private void sendSyncRequest(ArrayList eventSync) throws IOException {
+		for(int i=0;i<eventSync.size();i++) {
+			String[] command = eventSync.get(i).toString().split("\\s+");
+			if(command[0].toString().equals("FILE_CREATE")) {
+				Document Doc = new Document();
+				Doc.append("command", "FILE_CREATE_REQUEST");
+				Doc.append("pathName", command[1]);
+				Doc.append("fileDescriptor", fileSystemEvent.fileDescriptor.toDoc());
+				Out.write(Doc.toJson()+"\n");
+				Out.flush();
+			}
+			
+			if(command[0].toString().equals("DIRECTORY_CREATE")) {
+				Document Doc = new Document();
+				Doc.append("command", "DIRECTORY_CREATE_REQUEST");
+				Doc.append("pathName", command[1]);
+				Out.write(Doc.toJson()+"\n");
+				Out.flush();
+			}
+			
+		}
+		
 	}
 
 	public void Respond(String message){
@@ -115,16 +149,58 @@ class Threads extends Thread{
 					Doc.append("message", "pathname already exists");
 					Doc.append("status", false);
 				}
-				System.out.println(Doc.toJson());
+//				System.out.println(Doc.toJson());
+				Out.write(Doc.toJson()+"\n");
+				Out.flush();
+
+			}
+			
+			//DIRECTORY_DELETE_REQUEST -> DIRECTORY_DELETE_RESPONSE
+			if(Document.parse(message).get("command").equals("DIRECTORY_DELETE_REQUEST")) {
+				String pathName = Document.parse(message).get("pathName").toString();
+				Document Doc = new Document();
+				Doc.append("command", "DIRECTORY_DELETE_RESPONSE");
+				Doc.append("pathName", pathName);
+				if(fileSystemManager.dirNameExists(pathName)){
+					if(fileSystemManager.isSafePathName(pathName)) {
+						if(fileSystemManager.deleteDirectory(pathName)) {
+							Doc.append("message", "directory deleted");
+							Doc.append("status", true);
+						}
+						else {
+							Doc.append("message", "there was a problem creating the directory");
+							Doc.append("status", false);
+						}
+					}
+					else {
+						Doc.append("message", "unsafe pathname given");
+						Doc.append("status", false);
+					}
+				}
+				else {
+					Doc.append("message", "pathname does not exists");
+					Doc.append("status", false);
+				}
+//				System.out.println(Doc.toJson());
 				Out.write(Doc.toJson()+"\n");
 				Out.flush();
 			}
 			
+			if(Document.parse(message).get("command").equals("DIRECTORY_CREATE_RESPONSE")) {
+				return;
+			}
+			if(Document.parse(message).get("command").equals("DIRECTORY_DELETE_RESPONSE")) {
+				return;
+			}
+			
 			if(Document.parse(message).get("command").toString().equals("FILE_CREATE_REQUEST")) {
+				boolean ready = false;
 				String pathName = Document.parse(message).get("pathName").toString();
 				String fileDes = ((Document) Document.parse(message).get("fileDescriptor")).toJson();
 				String md5 = Document.parse(fileDes).get("md5").toString();
-//				String pathName = fileSystemManager.loadingSuffix;
+//				String fd = fileDes.replaceAll("\\\\", "");
+//				System.out.println(fd);
+				
 				long length = Document.parse(fileDes).getLong("fileSize");
 			
 				long lastModified = Document.parse(fileDes).getLong("lastModified");
@@ -136,11 +212,10 @@ class Threads extends Thread{
 					if(fileSystemManager.isSafePathName(pathName)) {
 						try {
 							if(fileSystemManager.createFileLoader(pathName, md5, length, lastModified)) {
-//								if(fileSystemManager.checkShortcut(pathName)){
+	
 									Doc.append("message", "file loader ready");
 									Doc.append("status",true);
-//								}
-						
+									ready = true;
 							}else {// unsuccessfully create
 								Doc.append("message", "there was a problem creating the file");
 								Doc.append("status",false);
@@ -157,11 +232,147 @@ class Threads extends Thread{
 					Doc.append("message", "pathname already exists");
 					Doc.append("status",false);
 				}
-//				System.out.println(fileSystemManager.fileNameExists(pathName,md5));
-				System.out.println(Doc.toJson());
+//				System.out.println(Doc.toJson());
 				Out.write(Doc.toJson()+"\n");
 				Out.flush();
+				if(ready) {
+					try {
+						if(fileSystemManager.checkShortcut(pathName)){
+							//copy local same content file
+						}else {
+							int blockSize = 1048576;
+							double n = Math.floor(length/blockSize + 1);
+							System.out.println(n);
+							for(int m=0;m < n;m++) {
+								Document Doc1 = new Document();
+								Doc1.append("command", "FILE_BYTES_REQUEST");
+								Doc1.append("fileDescriptor", fileDes);
+								Doc1.append("pathName", pathName);
+								Doc1.append("position", m * blockSize);
+								
+								if(m<n-1){// determine the number of request bytes
+									Doc1.append("length",blockSize);
+								}else {
+									if(m == 0) {
+										Doc1.append("length",length);
+									}else {
+										Doc1.append("length", length - blockSize * m);
+									}
+								}
+								
+								Out.write(Doc1.toJson()+"\n");
+								Out.flush();
+							}
+						}
+					} catch (NoSuchAlgorithmException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+
+					
+			}
+			
+			if(Document.parse(message).get("command").toString().equals("FILE_BYTES_REQUEST")) {
+				String pathName = Document.parse(message).get("pathName").toString();
+				String fileDes =  Document.parse(message).get("fileDescriptor").toString();
+				String md5 = Document.parse(fileDes).get("md5").toString();
+				long length = Document.parse(message).getLong("length");
+				long position = Document.parse(message).getLong("position");
+				Document Doc = new Document();
+				Doc.append("command", "FILE_BYTES_RESPONSE");
+				Doc.append("fileDescriptor", fileDes);
+				Doc.append("pathName", pathName);
+
+				try {
+					if(fileSystemManager.fileNameExists(pathName, md5)) {
+						ByteBuffer content = fileSystemManager.readFile(md5, position, length);
+						System.out.println(content);
+						if(content == null) { //no such file
+							Doc.append("message", "unsuccessful read");
+							Doc.append("status",false);
+						}
+						String src = Base64.getEncoder().encodeToString(content.array()).toString();
+						
+						Doc.append("position", position);
+						Doc.append("length", length);
+						Doc.append("content", src);
+						Doc.append("message", "successful read");
+						Doc.append("status", true);
+					}else {// file name and content don't exist
+						Doc.append("message", "unsuccessful read");
+						Doc.append("status",false);
+					}
+					
+					Out.write(Doc.toJson()+"\n");
+					Out.flush();
+					
+				} catch (NoSuchAlgorithmException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
+			if(Document.parse(message).get("command").toString().equals("FILE_BYTES_RESPONSE")) {
+				String pathName = Document.parse(message).get("pathName").toString();
+				String fileDes =  Document.parse(message).get("fileDescriptor").toString();
+				String md5 = Document.parse(fileDes).get("md5").toString();
+				long length = Document.parse(message).getLong("length");
+				long position = Document.parse(message).getLong("position");
+				String src = Document.parse(message).get("content").toString();
 				
+				byte[] content = Base64.getDecoder().decode(src);
+				System.out.println(new String(content, "utf-8"));
+				
+				ByteBuffer content1 = ByteBuffer.wrap(content);
+
+				if(fileSystemManager.writeFile(pathName, content1, position)) {
+					try {
+						if(fileSystemManager.checkWriteComplete(pathName)) {
+							System.out.println("Write already done");
+						}else {
+							System.out.println("Already transfered "+ (length + position) + " bytes");
+						}
+					} catch (NoSuchAlgorithmException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}else {
+					System.out.println("there was no associated file loader for the given name.");
+				}
+			}
+			// Delete file
+			if(Document.parse(message).get("command").toString().equals("FILE_DELETE_REQUEST")) {
+				String pathName = Document.parse(message).get("pathName").toString();
+				String fileDes =  Document.parse(message).get("fileDescriptor").toString();
+				String md5 = Document.parse(fileDes).get("md5").toString();
+				long lastModified = Document.parse(fileDes).getLong("lastModified");
+				Document Doc = new Document();
+				Doc.append("command", "FILE_DELETE_RESPONSE");
+				Doc.append("pathName", pathName);
+				if(fileSystemManager.fileNameExists(pathName)){
+					if(fileSystemManager.isSafePathName(pathName)) {
+						if(fileSystemManager.deleteFile(pathName, lastModified, md5)) {
+							Doc.append("message", "file deleted");
+							Doc.append("status", true);
+						}
+						else {
+							Doc.append("message", "there was a problem deleting the file");
+							Doc.append("status", false);
+						}
+					}
+					else {
+						Doc.append("message", "unsafe pathname given");
+						Doc.append("status", false);
+					}
+				}
+				else {
+					Doc.append("message", "pathname does not exists");
+					Doc.append("status", false);
+				}
+//				System.out.println(Doc.toJson());
+				Out.write(Doc.toJson()+"\n");
+				Out.flush();
 			}
 			
 			//DIRECTORY_CREATE_REQUEST
@@ -177,13 +388,11 @@ class Threads extends Thread{
 		 */
 		//FILE_CREATE,
 			if(fileSystemEvent.event.toString().equals("FILE_CREATE")) {
-				System.out.println(fileSystemEvent.event);
 				Document Doc = new Document();
 				Doc.append("command", "FILE_CREATE_REQUEST");
 				Doc.append("pathName", fileSystemEvent.pathName);
 				Doc.append("fileDescriptor", fileSystemEvent.fileDescriptor.toDoc());
 				Out.write(Doc.toJson()+"\n");
-//				Out.write(fileSystemEvent.event);
 				Out.flush();
 			}
 		
@@ -199,13 +408,38 @@ class Threads extends Thread{
 		 * A new directory has been created. The parent directory must
 		 * exist for this event to be emitted.
 		 */
+			if(fileSystemEvent.event.toString().equals("FILE_DELETE")) {
+				Document Doc = new Document();
+				Doc.append("command", "FILE_DELETE_REQUEST");
+				Doc.append("fileDescriptor", fileSystemEvent.fileDescriptor.toDoc());
+				Doc.append("pathName", fileSystemEvent.pathName);
+//				System.out.println(Doc.toJson());
+				Out.write(Doc.toJson()+"\n");
+				Out.flush();
+			}
+			
 		//DIRECTORY_CREATE,
+			//DIRECTORY_CREATE,
+			if(fileSystemEvent.event.toString().equals("DIRECTORY_CREATE")) {
+				Document Doc = new Document();
+				Doc.append("command", "DIRECTORY_CREATE_REQUEST");
+				Doc.append("pathName", fileSystemEvent.pathName);
+				Out.write(Doc.toJson()+"\n");
+				Out.flush();
+			}
 		/**
 		 * An existing directory has been deleted. The directory must
 		 * be empty for this event to be emitted, and its parent
 		 * directory must exist.
 		 */
 		//DIRECTORY_DELETE
+			if(fileSystemEvent.event.toString().equals("DIRECTORY_DELETE")) {
+				Document Doc = new Document();
+				Doc.append("command", "DIRECTORY_DELETE_REQUEST");
+				Doc.append("pathName", fileSystemEvent.pathName);
+				Out.write(Doc.toJson()+"\n");
+				Out.flush();
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
