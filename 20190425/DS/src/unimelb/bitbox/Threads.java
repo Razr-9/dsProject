@@ -118,7 +118,7 @@ class Threads extends Thread{
 					Doc.append("message", "pathname already exists");
 					Doc.append("status", false);
 				}
-//				System.out.println(Doc.toJson());
+				// System.out.println(Doc.toJson());
 				Out.write(Doc.toJson()+"\n");
 				Out.flush();
 
@@ -150,24 +150,24 @@ class Threads extends Thread{
 					Doc.append("message", "pathname does not exists");
 					Doc.append("status", false);
 				}
-//				System.out.println(Doc.toJson());
+				System.out.println(Doc.toJson());
 				Out.write(Doc.toJson()+"\n");
 				Out.flush();
 			}
 			
 			if(Document.parse(message).get("command").equals("DIRECTORY_CREATE_RESPONSE")) {
-//				boolean status = Document.parse(message).getBoolean("status");
-//				String pathName = Document.parse(message).get("pathName").toString();
-//				Document Doc = new Document();
-//				if(status){
-//					Doc.append("pathName", pathName);
-//				}
-				return;
-			}
-			if(Document.parse(message).get("command").equals("DIRECTORY_DELETE_RESPONSE")) {
 				return;
 			}
 			
+			if(Document.parse(message).get("command").equals("DIRECTORY_DELETE_RESPONSE")) {
+				return;
+			}
+
+			if(Document.parse(message).get("command").equals("FILE_CREATE_RESPONSE")) {
+				return;
+			}
+			
+
 			if(Document.parse(message).get("command").toString().equals("FILE_CREATE_REQUEST")) {
 				String pathName = Document.parse(message).get("pathName").toString();
 				String fileDes = ((Document) Document.parse(message).get("fileDescriptor")).toJson();
@@ -232,6 +232,57 @@ class Threads extends Thread{
 				}
 //				System.out.println(Doc.toJson());
 				Out.write(Doc.toJson()+"\n");
+				Out.flush();
+			}
+
+			/* 
+			FILE MODIFY
+			*/
+
+			if(Document.parse(message).get("command").equals("FILE_MODIFY_REQUEST")) {
+				String pathName = Document.parse(message).get("pathName").toString();
+				String fileDes = ((Document) Document.parse(message).get("fileDescriptor")).toJson();
+				String md5 = Document.parse(fileDes).get("md5").toString();
+				long lastModified = Document.parse(fileDes).getLong("lastModified");
+				// long fileSize = Document.parse(fileDes).getLong("fileSize");
+				ByteBuffer scr = 
+
+				Document Doc = new Document();
+				Document Doc_MODIFY = new Document();
+				
+				Doc.append("command", "FILE_MODIFY_RESPONSE");
+				Doc.append("pathName", pathName);
+				Doc.append("fileDescriptor", fileDes);
+				if(fileSystemManager.fileNameExists(pathName, md5)){
+					if(fileSystemManager.isSafePathName(pathName)) {
+						try {
+							if(fileSystemManager.modifyFileLoader(pathName, md5, lastModified)){
+								Doc.append("message", "file loader ready");
+								Doc.append("status", true);
+								Doc.MODIFY.append("command", "FILE_BYTES_REQUEST");
+								Doc.MODIFY.append("pathName", pathName);
+								Doc.MODIFY.append("fileDescriptor", Document.parse(fileDes));
+								System.out.println(Doc_MODIFY.toJson());
+								Out.write(Doc_MODIFY.toJson() + "\n");
+								Out.flush();
+							}else{
+								Doc.append("message", "File loading fail");
+								Doc.append("status", false);
+							}
+						} catch (IOException e) {
+							//TODO: handle exception
+							e.printStackTrace();
+						}
+					}else{ // unsafe pathname
+						Doc.append("message", "unsafe pathname");
+						Doc.append("status", false);
+					}
+				}else{ // file does not exist
+					Doc.append("message", "pathname does not exist");
+					Doc.append("message", false);
+				}
+				System.out.println(Doc.toJson());
+				Out.write(Doc.toJson() + "\n");
 				Out.flush();
 			}
 			
@@ -319,7 +370,17 @@ class Threads extends Thread{
 				Out.write(Doc.toJson()+"\n");
 				Out.flush();
 			}
-		
+		/* 
+		FILE MODIFY 
+		*/
+			if (fileSystemEvent.event.toString().equals("FILE_MODIFY")) {
+				Document Doc = new Document();
+				Doc.append("command", "FILE_MODIFY_REQUEST");
+				Doc.append("pathname", fileSystemEvent.pathName);
+				Doc.append("fileDescriptor", fileSystemEvent.fileDescriptor.toDoc());
+				Out.write(Doc.toJson() + "\n");
+				Out.flush();
+			}
 		/**
 		 * An existing file has been deleted.
 		 */
