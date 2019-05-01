@@ -2,18 +2,26 @@ package unimelb.bitbox;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.lang.*;
+import java.math.BigInteger;
+
 import unimelb.bitbox.util.Configuration;
 import unimelb.bitbox.util.Document;
 import unimelb.bitbox.util.FileSystemManager;
+import org.json.simple.*;
+
 import unimelb.bitbox.util.FileSystemManager.FileSystemEvent;
 
 class Threads extends Thread{
@@ -120,25 +128,75 @@ class Threads extends Thread{
 		}
 	}
 
-	private void sendSyncRequest(ArrayList<FileSystemEvent> eventSync) throws IOException {
+		@SuppressWarnings("unchecked")
+	private void sendSyncRequest(ArrayList eventSync) throws IOException {
 		for(int i=0;i<eventSync.size();i++) {
-			String event = eventSync.get(i).event.toString();
-			if(event.equals("FILE_CREATE")) {
-				Document Doc = new Document();
-				Doc.append("command", "FILE_CREATE_REQUEST");
-				Doc.append("pathName", eventSync.get(i).pathName);
-				Doc.append("fileDescriptor", eventSync.get(i).fileDescriptor.toDoc());
-				Out.write(Doc.toJson()+"\n");
-				Out.flush();
+			String[] command = eventSync.get(i).toString().split("\\s+");
+//			eventSync.get(i).
+			if(command[0].toString().equals("FILE_CREATE")) {
+				File file = new File(Configuration.getConfigurationValue("path"));
+				find(file,command[1]);
 			}
-			if(event.equals("DIRECTORY_CREATE")) {
+			
+			if(command[0].toString().equals("DIRECTORY_CREATE")) {
 				Document Doc = new Document();
 				Doc.append("command", "DIRECTORY_CREATE_REQUEST");
-				Doc.append("pathName", eventSync.get(i).pathName);
+				Doc.append("pathName", command[1]);
 				Out.write(Doc.toJson()+"\n");
 				Out.flush();
 			}
+			
 		}
+		
+	}
+
+	@SuppressWarnings("unchecked")
+	private void find(File file,String pathName) throws IOException {
+//		System.out.println(pathName);
+		Document fileDes = new Document();
+		Document Doc = new Document();
+		Doc.append("command", "FILE_CREATE_REQUEST");
+		Doc.append("pathName", pathName);
+		File[] fl = file.listFiles();
+		for(int j =0;j<fl.length;j++) {
+			if(fl[j].isDirectory()){
+				find(fl[j],pathName);
+			}
+			String[] a= fl[j].getPath().toString().split("\\\\",2);
+			if(fl[j].isFile()) {
+				if(a[1].toString().equals(pathName)) {
+					fileDes.append("fileSize",fl[j].length());
+					fileDes.append("lastModified",fl[j].lastModified());
+					String md5 = getMd5(fl[j].getPath());
+					fileDes.append("md5", md5);
+					Doc.append("fileDescriptor", fileDes);
+					System.out.println(Doc.toJson());
+					Out.write(Doc.toJson()+"\n");
+					Out.flush();
+				}
+			}	
+		return;
+	}
+	public static String getMd5(String path) {
+		BigInteger bi = null;
+		try {
+			byte[] buffer = new byte[8192];
+			int len = 0;
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			File f = new File(path);
+			FileInputStream fis = new FileInputStream(f);
+			while ((len = fis.read(buffer)) != -1) {
+				md.update(buffer, 0, len);
+			}
+			    fis.close();
+			    byte[] b = md.digest();
+			    bi = new BigInteger(1, b);
+			} catch (NoSuchAlgorithmException e) {
+			    e.printStackTrace();
+			} catch (IOException e) {
+			    e.printStackTrace();
+		}
+		return bi.toString(16);
 	}
 
 	public void Respond(String message){
