@@ -195,6 +195,12 @@ class Threads extends Thread{
 			if(Document.parse(message).get("command").equals("DIRECTORY_DELETE_RESPONSE")) {
 				return;
 			}
+			if(Document.parse(message).get("command").equals("FILE_DELETE_RESPONSE")) {
+				return;
+			}
+			if(Document.parse(message).get("command").equals("FILE_CREATE_RESPONSE")) {
+				return;
+			}
 			
 			if(Document.parse(message).get("command").toString().equals("FILE_CREATE_REQUEST")) {
 				boolean ready = false;
@@ -238,6 +244,7 @@ class Threads extends Thread{
 //				System.out.println(Doc.toJson());
 				Out.write(Doc.toJson()+"\n");
 				Out.flush();
+				
 				if(ready) {
 					try {
 						if(fileSystemManager.checkShortcut(pathName)){
@@ -274,6 +281,91 @@ class Threads extends Thread{
 				}
 
 					
+			}
+
+			/* 
+				FILE_MODIFY_REQUEST -> FILE_MODIFY_RESPONSE
+			*/
+			if(Document.parse(message).get("command").equals("FILE_MODIFY_REQUEST")) {
+				String pathName = Document.parse(message).get("pathName").toString();
+				String fileDes = ((Document) Document.parse(message).get("fileDescriptor")).toJson();
+				String md5 = Document.parse(fileDes).get("md5").toString();
+				// long lastModified = Document.parse(fileDes).getLong("lastModified");
+				// long fileSize = Document.parse(fileDes).getLong("fileSize");
+
+				Document Doc = new Document();
+
+				Doc.append("command", "FILE_MODIFY_RESPONSE");
+				Doc.append("pathName", pathName);
+				Doc.append("fileDescriptor", fileDes);
+				if(fileSystemManager.fileNameExists(pathName, md5)){
+					if(fileSystemManager.isSafePathName(pathName)) {
+						try {
+							if(fileSystemManager.modifyFileLoader(pathName, md5, lastModified)){
+								Doc.append("message", "file loader ready");
+								Doc.append("status", true);
+								
+								// Doc_modify.append("command", "FILE_BYTES_REQUEST");
+								// Doc_modify.append("fileDescriptor", Document.parse(fileDes));
+								// Doc_modify.append("pathName", pathName);
+
+								// System.out.println(Doc_modify.toJson());
+								// Out.write(Doc_modify.toJson() + "\n");
+								// Out.flush();
+							}else{
+								Doc.append("message", "File loading fail");
+								Doc.append("status", false);
+							}
+						} catch (IOException e) {
+							//TODO: handle exception
+							e.printStackTrace();
+						}
+					}else{ // unsafe pathname
+						Doc.append("message", "unsafe pathname");
+						Doc.append("status", false);
+					}
+				}else{ // file does not exist
+					Doc.append("message", "pathname does not exist");
+					Doc.append("message", false);
+				}
+				System.out.println(Doc.toJson());
+				Out.write(Doc.toJson() + "\n");
+				Out.flush();
+
+				if(Doc.getBoolean("status")) {
+					try {
+						if(fileSystemManager.checkShortcut(pathName)){
+							//copy local same content file
+						}else {
+							int blockSize = 1048576;
+							double n = Math.floor(length/blockSize + 1);
+							System.out.println(n);
+							for(int m=0;m < n;m++) {
+								Document Doc_modify = new Document();
+								Doc_modify.append("command", "FILE_BYTES_REQUEST");
+								Doc_modify.append("fileDescriptor", fileDes);
+								Doc_modify.append("pathName", pathName);
+								Doc_modify.append("position", m * blockSize);
+								
+								if(m<n-1){// determine the number of request bytes
+									Doc_modify.append("length",blockSize);
+								}else {
+									if(m == 0) {
+										Doc_modify.append("length",length);
+									}else {
+										Doc_modify.append("length", length - blockSize * m);
+									}
+								}
+								
+								Out.write(Doc_modify.toJson()+"\n");
+								Out.flush();
+							}
+						}
+					} catch (NoSuchAlgorithmException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
 			}
 			
 			if(Document.parse(message).get("command").toString().equals("FILE_BYTES_REQUEST")) {
@@ -398,6 +490,17 @@ class Threads extends Thread{
 				Out.write(Doc.toJson()+"\n");
 				Out.flush();
 			}
+		/* 
+		File_Modify block
+		*/
+			if (fileSystemEvent.event.toString().equals("FILE_MODIFY")) {
+				Document Doc = new Document();
+				Doc.append("command", "FILE_MODIFY_REQUEST");
+				Doc.append("pathname", fileSystemEvent.pathName);
+				Doc.append("fileDescriptor", fileSystemEvent.fileDescriptor.toDoc());
+				Out.write(Doc.toJson() + "\n");
+				Out.flush();
+			}
 		
 		/**
 		 * An existing file has been deleted.
@@ -406,7 +509,6 @@ class Threads extends Thread{
 		/**
 		 * An existing file has been modified.
 		 */
-		//FILE_MODIFY,
 		/**
 		 * A new directory has been created. The parent directory must
 		 * exist for this event to be emitted.
