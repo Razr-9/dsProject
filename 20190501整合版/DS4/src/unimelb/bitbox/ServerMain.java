@@ -22,7 +22,7 @@ public class ServerMain implements FileSystemObserver {
 	String peers;
 	int port;
 	int len;
-	Threads [] th;
+	static Threads [] th;
 	Threads [] thClient;
 	
 	public ServerMain() throws NumberFormatException, IOException, NoSuchAlgorithmException {
@@ -38,7 +38,7 @@ public class ServerMain implements FileSystemObserver {
 		
 		try {
 			//Create a server socket listening on port 4444
-			listeningSocket = new ServerSocket(5555);
+			listeningSocket = new ServerSocket(4444);
 			//i = 0; //counter to keep track of the number of clients
 			System.out.println("Server listening on port "+port+" for a connection");
 			//Listen for incoming connections for ever 
@@ -47,7 +47,7 @@ public class ServerMain implements FileSystemObserver {
 				Socket = listeningSocket.accept(); //This method will block until a connection request is received
 				for(int j=0;j<max+1;j++) {
 					if(th[j] == null || !th[j].isAlive()) {
-						System.out.println(j);
+						System.out.println("Connection ID: "+j);
 						th[j] = new Threads(Socket, j,  "Server", fileSystemManager);
 						break;
 					}

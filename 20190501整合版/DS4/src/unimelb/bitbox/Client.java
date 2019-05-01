@@ -27,7 +27,7 @@ class Client {
 			HostPort HP = new HostPort(hostPorts[len-1]);
 			//Socket = new Socket(HP.host, HP.port);
 		   //Socket = new Socket("43.113.235.184", 8111);
-			Socket = new Socket("localhost", 4444);
+			Socket = new Socket("localhost", 8888);
 			//Socket = new Socket("43.240.97.106",3000);
 			System.out.println("Connection established");
 			th[len-1]= new Threads(Socket, 0, "Client", fileSystemManager);

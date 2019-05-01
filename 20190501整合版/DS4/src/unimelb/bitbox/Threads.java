@@ -52,10 +52,19 @@ class Threads extends Thread{
 		//one is processed unless...we use threads!
 		try {
 			if(ServerOrClient=="Server") {
-				if(j < Integer.parseInt(Configuration.getConfigurationValue("maximumIncomingConnections"))) {
+				int max = Integer.parseInt(Configuration.getConfigurationValue("maximumIncomingConnections"));
+				if(j < max) {
 					if(Document.parse((Msg = In.readLine())).get("command").equals("HANDSHAKE_REQUEST")) {
-						Out.write(new JSON().marshaling("HANDSHAKE_RESPONSE")+"\n");
+						//HANDSHAKE_RESPONSE
+						Document Doc = new Document();
+						Document hostPort = new Document();
+						Doc.append("command","HANDSHAKE_RESPONSE");
+						hostPort.append("port", Integer.parseInt(Configuration.getConfigurationValue("port")));
+						hostPort.append("host", Configuration.getConfigurationValue("advertisedName"));
+						Doc.append("hostPort",hostPort);
+						Out.write(Doc.toJson()+"\n");
 						Out.flush();
+						
 						ArrayList<FileSystemEvent> eventSync = fileSystemManager.generateSyncEvents();
 						sendSyncRequest(eventSync);
 						while((Msg = In.readLine()) != null) {
@@ -65,13 +74,35 @@ class Threads extends Thread{
 					}
 				}
 				else {
-					Out.write(new JSON().marshaling("CONNECTION_REFUSED")+"\n");
+					//CONNECTION_REFUSED
+					Document Doc = new Document();
+					ArrayList<Document> peers = new ArrayList<Document>();
+					Doc.append("command","CONNECTION_REFUSED");
+					Doc.append("message","connection limit reached");
+					for(int i =0;i<max;i++) {
+						if(ServerMain.th[i]!=null && ServerMain.th[i].isAlive()){
+							Document peer = new Document();
+							peer.append("host",ServerMain.th[i].Socket.getInetAddress().getHostName());
+							peer.append("port",ServerMain.th[i].Socket.getPort());
+							peers.add(peer);
+						}
+					}
+					Doc.append("peers",peers);
+					Out.write(Doc.toJson()+"\n");
 					Out.flush();
 				}
 			}
 			else if (ServerOrClient=="Client") {
-				Out.write(new JSON().marshaling("HANDSHAKE_REQUEST")+"\n");
+				//HANDSHAKE_REQUEST
+				Document Doc = new Document();
+				Document hostPort = new Document();
+				Doc.append("command","HANDSHAKE_REQUEST");
+				hostPort.append("port", Integer.parseInt(Configuration.getConfigurationValue("port")));
+				hostPort.append("host", Configuration.getConfigurationValue("advertisedName"));
+				Doc.append("hostPort",hostPort);
+				Out.write(Doc.toJson()+"\n");
 				Out.flush();
+				
 				if(Document.parse((Msg = In.readLine())).get("command").equals("HANDSHAKE_RESPONSE")) {
 					ArrayList<FileSystemEvent> eventSync = fileSystemManager.generateSyncEvents();
 					sendSyncRequest(eventSync);
