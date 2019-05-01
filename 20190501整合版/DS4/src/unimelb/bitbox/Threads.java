@@ -177,6 +177,7 @@ class Threads extends Thread{
 			}	
 		return;
 	}
+}
 	public static String getMd5(String path) {
 		BigInteger bi = null;
 		try {
