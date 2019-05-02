@@ -183,7 +183,14 @@ class Threads extends Thread{
 		File[] fl = file.listFiles();
 		for(int j =0;j<fl.length;j++) {
 			if(fl[j].isFile()) {
-				String[] a= fl[j].getPath().toString().split("\\\\",2);
+				String a[];
+				if (fl[j].separatorChar=='\\') {
+			
+					a= fl[j].getPath().toString().split("\\\\",2);
+			    	} else {
+			    		a= fl[j].getPath().toString().split("/",2);
+			    	}	
+			
 				if(a[1].toString().equals(pathName)) {
 					fileDes.append("fileSize",fl[j].length());
 					fileDes.append("lastModified",fl[j].lastModified());
