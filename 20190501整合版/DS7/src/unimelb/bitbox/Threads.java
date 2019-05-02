@@ -185,8 +185,8 @@ class Threads extends Thread{
 			if(fl[j].isDirectory()){
 				find(fl[j],pathName);
 			}
-			String[] a= fl[j].getPath().toString().split("\\\\",2);
 			if(fl[j].isFile()) {
+				String[] a= fl[j].getPath().toString().split("/",2);
 				if(a[1].toString().equals(pathName)) {
 					fileDes.append("fileSize",fl[j].length());
 					fileDes.append("lastModified",fl[j].lastModified());
