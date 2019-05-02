@@ -182,20 +182,20 @@ class Threads extends Thread{
 		Doc.append("pathName", pathName);
 		File[] fl = file.listFiles();
 		for(int j =0;j<fl.length;j++) {
-			if(fl[j].isDirectory()){
-				find(fl[j],pathName);
-			}
-			String[] a= fl[j].getPath().toString().split("\\\\",2);
 			if(fl[j].isFile()) {
+				String[] a= fl[j].getPath().toString().split("\\\\",2);
 				if(a[1].toString().equals(pathName)) {
 					fileDes.append("fileSize",fl[j].length());
 					fileDes.append("lastModified",fl[j].lastModified());
 					String md5 = getMd5(fl[j].getPath());
 					fileDes.append("md5", md5);
 					Doc.append("fileDescriptor", fileDes);
-					System.out.println(Doc.toJson());
 					Out.write(Doc.toJson()+"\n");
 					Out.flush();
+				}
+			}else {
+				if(fl[j].isDirectory()){
+					find(fl[j],pathName);
 				}
 			}
 	}
