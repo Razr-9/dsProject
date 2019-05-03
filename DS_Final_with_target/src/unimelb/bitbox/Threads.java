@@ -273,7 +273,7 @@ class Threads extends Thread {
 				Out.write(Doc.toJson() + "\n");
 				Out.flush();
 				
-				System.out.println("Directory create rsponse sent:");
+				System.out.println("Directory create response sent:");
 				System.out.println("	pathname: "+pathName);
 				System.out.println("	message: "+Doc.get("message"));
 
@@ -309,7 +309,7 @@ class Threads extends Thread {
 				Out.write(Doc.toJson() + "\n");
 				Out.flush();
 				
-				System.out.println("Directory delete rsponse sent:");
+				System.out.println("Directory delete response sent:");
 				System.out.println("	pathname: "+pathName);
 				System.out.println("	message: "+Doc.get("message"));
 				
