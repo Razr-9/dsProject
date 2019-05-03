@@ -131,7 +131,7 @@ class Threads extends Thread {
 					ArrayList<Document> peers = new ArrayList<Document>();
 					Doc.append("command", "CONNECTION_REFUSED");
 					Doc.append("message", "connection limit reached");
-					System.out.println(ServerMain.thClient[0].Socket.getInetAddress().getHostName()+":"+ServerMain.thClient[0].Socket.getPort());
+					
 					for (int i = 0; i < ServerMain.thClient.length; i++) {
 						if (ServerMain.thClient[i] != null && ServerMain.thClient[i].isAlive()) {
 							Document peer = new Document();
