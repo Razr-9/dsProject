@@ -306,31 +306,35 @@ class Threads extends Thread {
 				Doc.append("command", "FILE_CREATE_RESPONSE");
 				Doc.append("fileDescriptor", Document.parse(fileDes));
 				Doc.append("pathName", pathName);
-				if (!fileSystemManager.fileNameExists(pathName)) {
-					if (fileSystemManager.isSafePathName(pathName)) {
+				if(!fileSystemManager.fileNameExists(pathName)) {
+					if(fileSystemManager.isSafePathName(pathName)) {
 						try {
-							if (fileSystemManager.createFileLoader(pathName, md5, fileSize, lastModified)) {
-								Doc.append("message", "file loader ready");
-								Doc.append("status", true);
-								ready = true;
-							} else {// unsuccessfully create
+							if(fileSystemManager.createFileLoader(pathName, md5, fileSize, lastModified)) {
+									Doc.append("message", "file loader ready");
+									Doc.append("status",true);
+									ready = true;
+							}else {// unsuccessfully create
 								Doc.append("message", "there was a problem creating the file");
-								Doc.append("status", false);
+								Doc.append("status",false);
 							}
 						} catch (NoSuchAlgorithmException e) {
 							e.printStackTrace();
 						}
-					} else {// unsave pathname
+					}else {//unsave pathname
 						Doc.append("message", "unsafe pathname given");
-						Doc.append("status", false);
+						Doc.append("status",false);
 					}
-
-				} else {// filename exists
-					Doc.append("message", "pathname already exists");
-					Doc.append("status", false);
+					
+				}else {//filename exists
+					if(fileSystemManager.fileNameExists(pathName, md5)) {
+						Doc.append("message", "pathname already exists");
+						Doc.append("status",false);
+					}else {
+						ready = fileSystemManager.modifyFileLoader(pathName, md5, lastModified);
+					}
 				}
-				Out.write(Doc.toJson() + "\n");
-				Out.flush();
+				Out.write(Doc.toJson()+"\n");
+				Out.flush()
 
 				if (ready) {
 					Document Doc1 = new Document();
