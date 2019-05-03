@@ -391,19 +391,28 @@ class Threads extends Thread {
 				System.out.println("	message: "+Doc.get("message"));
 
 				if (ready) {
-					Document Doc1 = new Document();
-					Doc1.append("command", "FILE_BYTES_REQUEST");
-					Doc1.append("fileDescriptor", Document.parse(fileDes));
+					int blockSize = 1048576;
+					double n = Math.floor(fileSize / blockSize + 1);
+					for (int m = 0; m < n; m++) {
+						Document Doc1 = new Document();
+						Doc1.append("command", "FILE_BYTES_REQUEST");
+						Doc1.append("fileDescriptor", fileDes);
+						Doc1.append("pathName", pathName);
+						Doc1.append("position", m * blockSize);
 
-					Doc1.append("pathName", pathName);
-					Doc1.append("position", (long) 0);
-					if (fileSize < blockSize) {// determine the number of request bytes
-						Doc1.append("length", fileSize);
-					} else {
-						Doc1.append("length", blockSize);
+						if (m < n - 1) {// determine the number of request bytes
+							Doc1.append("length", blockSize);
+						} else {
+							if (m == 0) {
+								Doc1.append("length", fileSize);
+							} else {
+								Doc1.append("length", fileSize - blockSize * m);
+							}
+						}
+
+						Out.write(Doc1.toJson() + "\n");
+						Out.flush();
 					}
-					Out.write(Doc1.toJson() + "\n");
-					Out.flush();
 					
 					System.out.println("File bytes request sent:");
 					System.out.println("	pathname: "+pathName);
