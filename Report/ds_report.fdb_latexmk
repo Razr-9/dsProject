@@ -1,10 +1,9 @@
 # Fdb version 3
-["pdflatex"] 1556777575 "/Users/razr/Documents/dsProject/Report/ds_report.tex" "/Users/razr/Documents/dsProject/Report/ds_report.pdf" "ds_report" 1556777578
-  "/Users/razr/Documents/dsProject/Report/ds_report.aux" 1556777575 8 a94a2480d3289e625eea47cd1b285758 ""
-  "/Users/razr/Documents/dsProject/Report/ds_report.tex" 1556777575 719 3247abaafa088828f74989dfc72a42e0 ""
+["pdflatex"] 1556962491 "/Users/razr/Documents/dsProject/Report/ds_report.tex" "/Users/razr/Documents/dsProject/Report/ds_report.pdf" "ds_report" 1556962494
+  "/Users/razr/Documents/dsProject/Report/ds_report.aux" 1556962491 8 a94a2480d3289e625eea47cd1b285758 ""
+  "/Users/razr/Documents/dsProject/Report/ds_report.tex" 1556962490 727 070bb4428144f969901343682b977126 ""
   "/usr/local/texlive/2018/texmf-dist/fonts/map/fontname/texfonts.map" 1511824771 3332 103109f5612ad95229751940c61aada0 ""
   "/usr/local/texlive/2018/texmf-dist/fonts/tfm/public/cm/cmr10.tfm" 1480098701 1296 45809c5a464d5f32c8f98ba97c1bb47f ""
-  "/usr/local/texlive/2018/texmf-dist/fonts/tfm/public/cm/cmr12.tfm" 1480098701 1288 655e228510b4c2a1abe905c368440826 ""
   "/usr/local/texlive/2018/texmf-dist/tex/generic/ifxetex/ifxetex.sty" 1480098815 1458 43ab4710dc82f3edeabecd0d099626b2 ""
   "/usr/local/texlive/2018/texmf-dist/tex/generic/oberdiek/ifpdf.sty" 1490564930 1251 d170e11a3246c3392bc7f59595af42cb ""
   "/usr/local/texlive/2018/texmf-dist/tex/generic/oberdiek/ifvtex.sty" 1480098815 6797 90b7f83b0ad46826bc16058b1e3d48df ""
@@ -12,7 +11,7 @@
   "/usr/local/texlive/2018/texmf-dist/tex/generic/unicode-data/SpecialCasing.txt" 1498600549 16830 e49d6f1fe536f43762ba1ecfe9e53e12 ""
   "/usr/local/texlive/2018/texmf-dist/tex/generic/unicode-data/UnicodeData.txt" 1498600549 1735010 2a52f30695dcc821f0f224650552beaf ""
   "/usr/local/texlive/2018/texmf-dist/tex/latex/base/article.cls" 1523050425 19823 fcbc01552b07b608574cbf8e1977e0c0 ""
-  "/usr/local/texlive/2018/texmf-dist/tex/latex/base/size12.clo" 1523050425 8305 4e2a90a380a17c0472dd191689c67cbc ""
+  "/usr/local/texlive/2018/texmf-dist/tex/latex/base/size10.clo" 1523050425 8294 b0f177401f895563eb19304d2389582d ""
   "/usr/local/texlive/2018/texmf-dist/tex/latex/fontspec/fontspec.sty" 1510271071 1589 9f35dfbb28ed2e1e381b9563c9240f27 ""
   "/usr/local/texlive/2018/texmf-dist/tex/latex/geometry/geometry.sty" 1522012985 41366 3ed245b911039f45436c2cb62a4d1e62 ""
   "/usr/local/texlive/2018/texmf-dist/tex/latex/graphics-cfg/graphics.cfg" 1480098830 1224 978390e9c2234eab29404bc21b268d1e ""
@@ -28,7 +27,7 @@
   "/usr/local/texlive/2018/texmf-dist/web2c/texmf.cnf" 1522066949 33362 cf75436e19743e94a92a6b1b9183c434 ""
   "/usr/local/texlive/2018/texmf-var/web2c/pdftex/pdflatex.fmt" 1535816673 4220279 da6e42b3c88c87ef558f625c8180ff9c ""
   "/usr/local/texlive/2018/texmf.cnf" 1523934483 577 0b39adfd7c93507ff20c9c14c2f1a33f ""
-  "ds_report.tex" 1556777575 719 3247abaafa088828f74989dfc72a42e0 ""
+  "ds_report.tex" 1556962490 727 070bb4428144f969901343682b977126 ""
   (generated)
   "/Users/razr/Documents/dsProject/Report/ds_report.log"
   "/Users/razr/Documents/dsProject/Report/ds_report.pdf"

@@ -1,0 +1,1 @@
+int namecalc(char* string); 

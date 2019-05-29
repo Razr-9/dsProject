@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.9.2)  2 MAY 2019 16:12
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.9.2)  4 MAY 2019 19:34
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -9,8 +9,8 @@ LaTeX2e <2018-04-01> patch level 2
 Babel <3.18> and hyphenation patterns for 84 language(s) loaded.
 (/usr/local/texlive/2018/texmf-dist/tex/latex/base/article.cls
 Document Class: article 2014/09/29 v1.4h Standard LaTeX document class
-(/usr/local/texlive/2018/texmf-dist/tex/latex/base/size12.clo
-File: size12.clo 2014/09/29 v1.4h Standard LaTeX file (size option)
+(/usr/local/texlive/2018/texmf-dist/tex/latex/base/size10.clo
+File: size10.clo 2014/09/29 v1.4h Standard LaTeX file (size option)
 )
 \c@part=\count80
 \c@section=\count81
@@ -48,6 +48,19 @@ Package: ifxetex 2010/09/12 v0.6 Provides ifxetex conditional
 \Gm@layouthoffset=\dimen109
 \Gm@layoutvoffset=\dimen110
 \Gm@dimlist=\toks15
+
+
+/usr/local/texlive/2018/texmf-dist/tex/latex/geometry/geometry.sty:1003: LaTeX Error: Missing \begin{document}.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.1003 \ProcessOptionsKV[p]{Gm}
+                               %
+You're in trouble here.  Try typing  <return>  to proceed.
+If that doesn't work, type  X <return>  to quit.
+
 ) (/usr/local/texlive/2018/texmf-dist/tex/latex/graphics/graphicx.sty
 Package: graphicx 2017/06/01 v1.1a Enhanced LaTeX Graphics (DPC,SPQR)
  (/usr/local/texlive/2018/texmf-dist/tex/latex/graphics/graphics.sty
@@ -244,11 +257,11 @@ l.44 \msg_fatal:nn {fontspec} {cannot-use-pdftex}
 
  ) ) 
 Here is how much of TeX's memory you used:
- 9354 strings out of 492649
- 188357 string characters out of 6129623
- 222934 words of memory out of 5000000
- 13269 multiletter control sequences out of 15000+600000
- 530570 words of font info for 23 fonts, out of 8000000 for 9000
+ 9352 strings out of 492649
+ 188338 string characters out of 6129623
+ 222932 words of memory out of 5000000
+ 13268 multiletter control sequences out of 15000+600000
+ 530272 words of font info for 22 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  39i,1n,33p,10451b,275s stack positions out of 5000i,500n,10000p,200000b,80000s
 

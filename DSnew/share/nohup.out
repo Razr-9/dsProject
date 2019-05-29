@@ -1,0 +1,2 @@
+Error: Could not find or load main class unimelb.bitbox.Peer
+Caused by: java.lang.ClassNotFoundException: unimelb.bitbox.Peer
