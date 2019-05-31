@@ -1,0 +1,35 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "list_peers",
+            "request": "launch",
+            "mainClass": "unimelb.bitbox.Client",
+            "args": "-c list_peers -s 10.9.130.101:8112 -i scott@ubuntu",
+            "projectName": "bitbox"
+        },
+        {
+            "type": "java",
+            "name": "connect_peer",
+            "request": "launch",
+            "mainClass": "unimelb.bitbox.Client",
+            "args": "-c connect_peer -s 10.9.130.101:8112 -p 10.9.128.69:6666 -i scott@ubuntu",
+            "projectName": "bitbox"
+        },
+        {
+            "type": "java",
+            "name": "disconnect_peer",
+            "request": "launch",
+            "mainClass": "unimelb.bitbox.Client",
+            "args": "-c disconnect_peer -s 10.9.130.101:8112 -i scott@ubuntu",
+            "projectName": "bitbox"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - Peer",
+            "request": "launch",
+            "mainClass": "unimelb.bitbox.Peer",
+            "projectName": "bitbox"
+        }
+    ]
+}
