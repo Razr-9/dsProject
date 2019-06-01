@@ -172,6 +172,8 @@ public class ServerMain implements FileSystemObserver {
 				  && Integer.toString(th[i].Socket.getPort()).equals(port) && th[i].isAlive()){
 					try {
 						th[i].Socket.close();
+					} catch (SocketException e) {
+
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
@@ -184,7 +186,9 @@ public class ServerMain implements FileSystemObserver {
 					if(thClient[i]!=null && thClient[i].Socket.getInetAddress().getHostAddress().equals(host)
 							  && Integer.toString(thClient[i].Socket.getPort()).equals(port) && thClient[i].isAlive()){
 						try {
-							th[i].Socket.close();
+							thClient[i].Socket.close();
+						} catch (SocketException e) {
+							
 						} catch (IOException e) {
 							e.printStackTrace();
 						}

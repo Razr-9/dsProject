@@ -164,9 +164,9 @@ public class CmdHandler extends Thread {
 												break;
 											}
 										}
+										Thread.sleep(1000);
 										status = Threads.status;
 										Threads.status = false;
-										Thread.sleep(1000);
 										
 									} else if (Configuration.getConfigurationValue("mode").equals("udp")){
 										for(int j=0;j<Integer.parseInt(Configuration.getConfigurationValue("udpRetries"));j++) {

@@ -287,7 +287,7 @@ class Client {
 					System.out.println("	Port: " + peer.get(i).get("port"));
 				}
 			} else {
-				System.out.println("No Peer conneced");
+				System.out.println("No Peer connected");
 			}
 			return true;
 		} else if (response.equals("CONNECT_PEER_RESPONSE"))
