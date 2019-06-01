@@ -1,0 +1,88 @@
+\documentclass[a4paper,10pt,titlepage,twocolumn]{article}
+    \usepackage[left=1in,right=1in,top=1in,bottom=1in]{geometry}
+    \usepackage{graphicx}
+    \usepackage{url}
+    \usepackage{listings}
+    \usepackage{xcolor}
+
+    \definecolor{background}{HTML}{EEEEEE}
+    
+    \lstdefinelanguage{json}{
+    basicstyle=\normalfont\ttfamily,
+    numbers=left,
+    numberstyle=\scriptsize,
+    stepnumber=1,
+    numbersep=10pt,
+    showstringspaces=false,
+    breaklines=true,
+    frame=,
+    backgroundcolor=\color{background},
+    literate=,
+}
+
+\begin{document}
+\linespread{1.5}
+    \title{COMP90015 Distributed Systems \\Project 2 \\Security and UDP\\}
+    \author{\\\Large \textit{Team Koala} \\
+    \\
+        \begin{tabular}{|c|c|c|}
+        \hline
+        Members &loginName&Emails \\ \hline
+        Yue Guo & guoy7 &\url{guoy7@student.unimelb.edu.au}  \\ 
+        Runze Nie & runzen & \url{runzen@student.unimelb.edu.au} \\
+        Cheng Qian & cqq & \url{cqq@student.unimelb.edu.au} \\ 
+        Junyi Wu & junyiw7 & \url{junyiw7@student.unimelb.edu.au} \\ \hline
+    \end{tabular}}
+    \date{}
+    \maketitle
+    \section{Introduction}
+    Based on the Bitbox system in Project 1, this project focuses on two primary sections -- Security and UDP connection. This report is going to discuss the implementation and some relevant questions in this project.
+    \section{Security}
+    \subsection{Implementation}
+    Asymmetric cryptography, usually called public key cryptography, uses the public key to encrypt the message and the encrypted message can only be decrypted by the owner of the private key. Asymmetric cryptography provides stronger protection to sensitive information because even if the server leaks the public key, the attacker will not be able to decrypt the message as long as the private key is safe. Asymmetric cryptography is commonly used in the initialization stage of a connection. Then the connection will be switched to symmetric cryptography because it is much more efficient.
+    \\When building a file permission scheme in BitBox, identity authentication can be quite important, and the asymmetric cryptography is suitable for authentication procedures. The client should generate the key pair and share the public key with the server when the identity of the client is registered at the server end. Every time the user wants to start a connection, the client end sends an authentication request to the server, and the server will find the public key of the user and use it to encrypt a random number. If the client can use the corresponding private key to decrypt the message and send it back to the server, the server will give permission to the client and switch to the symmetric cryptography after exchanging the symmetric key for the session. 
+    \\The detailed permission of a user is specified by a configuration file saved at the server end, which specifies whether a user or group can read, write or execute a specific file or directory. Every time a file or directory manipulation request is received by the server end, the server will check the authorization of the user in the permission table, and decide whether to provide the permission or not.
+    \\To implement the scheme mentioned above, the server administrator should make sure the public keys and usernames are mapped correctly and the permission of different users and groups are configured properly. Moreover, the administrator should also consider both the group and individual permission of a user, for example, a user may be a member of multiple groups. When confirming the client has the private key, we should also use other techniques to keep the procedure of sending the random number safe, such as hashing.
+    \subsection{Grant Permission}
+    As the public/private keys are generated in pairs, the user can access the files by verifying the Authentication key. The peer owned the private key, which pairs the public key holding by the server will have access to the file system. This can be considered as the user own this part of files or directories due to the reason that others without the private key can not access them. As the server, it can also grant authority to users like command 'chown' works in Linux. It can allow administration in different levels to different users, including view-only or read/write.
+    \subsection{Limitations}
+    It seems no severe limitations in this kind of approach. 
+\\On the one hand, this approach is like SSH connection, which has been widely used in the real world. 
+\\On the other hand, for the permission of users, it can be implemented like 'chown' command in Linux. It can grant permission to users by different levels, like read-only or read and write.
+    \subsection{Protocol}
+    \begin{tabular}{|p{1.15cm}|p{1.15cm}|p{1.15cm}|p{1.15cm}|p{1.15cm}|}
+        \hline
+        Path- name & Type & Account & Write & Read \\ \hline
+
+share/ client\_1&$direct- ory$&client\_1&client\_1 &client\_1 client\_2 client\_3 \\ \hline
+share/ client\_1/ dog.jpg & $file$&client\_1&client\_1 client\_2 &client\_1 client\_2 client\_3 \\ \hline 
+share/ client\_2& $direct- ory$ &client\_2&client\_2&client\_2 \\ \hline
+share/ client\_2/ cat.jpg & $file$ &client\_2&client\_2&client\_2 \\ \hline
+
+    \end{tabular}
+    \begin{lstlisting}[language=json,firstnumber=1,title=Message 1]
+{
+    "command":"READ_FILE_REQUEST",
+    "pathname":"client_1/dog.jpg",
+    "account":"client_1"
+}
+    \end{lstlisting}
+    \begin{lstlisting}[language=json,firstnumber=1,title=Message 2]
+{
+    "command":"READ_FILE_REQUEST",
+    "pathname":"client_2/cat.jpg",
+    "account":"client_1"
+}
+    \end{lstlisting}
+
+    \section{UDP Connection}
+    There are three significant aspects of our UDP implementation. We will demonstrate these characters and compare them with TCP approaches. 
+    \subsection{Transfer method}
+    Because of this character, we employ the datagram socket to communicate between peers. UDP is considered a connectionless protocol because it doesn't require a virtual circuit, like handshake request and response, to be established before data transfer occurs. Therefore, the UDP transmission is very fast.However, the protocol of assignment 2 is required to be the same as that of assignment 1. We designed a fake handshake protocol to fulfill this requirement. Also, we store all the successfully handshake peers in the rememberPeers list, so that we can find out all the connected peers and determine if the connected peer number exceeds the max connection number. However, the TCP approach needs a handshake process before the connection established. Besides, the connection is more reliable and stable.
+    \subsection{Process data method}    
+    In UDP protocol, it uses the datagram packet to receive DatagramSocket data. In each data packet, the receiver IP host and port will be saved. Thus, the data packet can be sent to the right IP address. Furthermore, the size of the datagram packets has a limitation. The max size of a datagram packet in our UDP implementation is 8196 bytes. By contrast, there is no limitation size of transmission data in the TCP protocol. Therefore, the number of transmissions is less.
+    \subsection{Re-transfer data packet}    
+    Since the packet size is relatively small in the UDP transmission. It is good for small file transmitting, and very fast. But, for a large file, it is going to need a lot of packets and the number of transmissions will increase as the size of a file larger. To address this issue, we employed a re-send mechanism to re-send those lost packets. While TCP protocol is more reliable because of its block control mechanism.
+
+
+\end{document}
