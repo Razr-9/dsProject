@@ -286,6 +286,8 @@ class Client {
 					System.out.println("	Host: " + peer.get(i).get("host"));
 					System.out.println("	Port: " + peer.get(i).get("port"));
 				}
+			} else {
+				System.out.println("no Peers connected");
 			}
 			return true;
 		} else if (response.equals("CONNECT_PEER_RESPONSE"))
@@ -335,9 +337,6 @@ class Client {
 		PrivateKey privateKey = null;
 		InputStream inputStream = null;
 		try {
-			if (inputStream == null) {
-				System.out.println("inputStream path doesn't exist");
-			}
 			inputStream = new FileInputStream(privateKeyPath);
 			privateKey = getPrivateKey(inputStream, keyAlgorithm);
 		} catch (Exception e) {

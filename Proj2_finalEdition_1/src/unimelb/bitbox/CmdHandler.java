@@ -117,29 +117,31 @@ public class CmdHandler extends Thread {
 								Doc = new Document();
 								if (Document.parse(request).get("command").equals("LIST_PEERS_REQUEST")) {
 									ArrayList<Document> peers = new ArrayList<Document>();
-									if(ServerMain.thClient != null) {
-									for (int i = 0; i < ServerMain.thClient.length; i++) {
-										if (ServerMain.thClient[i] != null && ServerMain.thClient[i].isAlive()) {
-											Document peer = new Document();
-											peer.append("host", ServerMain.thClient[i].Socket.getInetAddress().toString());
-											peer.append("port", ServerMain.thClient[i].Socket.getPort());
-											peers.add(peer);
+									if (ServerMain.thClient != null) {
+										for (int i = 0; i < ServerMain.thClient.length; i++) {
+											if (ServerMain.thClient[i] != null && ServerMain.thClient[i].isAlive()) {
+												Document peer = new Document();
+												peer.append("host", ServerMain.thClient[i].Socket.getInetAddress()
+														.getHostAddress());
+												peer.append("port", ServerMain.thClient[i].Socket.getPort());
+												peers.add(peer);
+											}
 										}
 									}
-									}
-									
-									if(ServerMain.th != null) {
-									for (int i = 0; i < ServerMain.th.length; i++) {
-										if (ServerMain.th[i] != null && ServerMain.th[i].isAlive()) {
-											Document peer = new Document();
-											peer.append("host", ServerMain.th[i].Socket.getInetAddress().toString());
-											peer.append("port", ServerMain.th[i].Socket.getPort());
-											peers.add(peer);
+
+									if (ServerMain.th != null) {
+										for (int i = 0; i < ServerMain.th.length; i++) {
+											if (ServerMain.th[i] != null && ServerMain.th[i].isAlive()) {
+												Document peer = new Document();
+												peer.append("host",
+														ServerMain.th[i].Socket.getInetAddress().getHostAddress());
+												peer.append("port", ServerMain.th[i].Socket.getPort());
+												peers.add(peer);
+											}
 										}
 									}
-									}
-									
-									if(ServerMain.rememberedPeers!=null) {
+
+									if (ServerMain.rememberedPeers != null) {
 										for (int i = 0; i < ServerMain.rememberedPeers.length; i++) {
 											if (ServerMain.rememberedPeers[i][0] != null) {
 												Document peer = new Document();
@@ -155,21 +157,22 @@ public class CmdHandler extends Thread {
 									String host = Document.parse(request).get("host").toString();
 									String port = Document.parse(request).get("port").toString();
 									boolean status = false;
-									if(Configuration.getConfigurationValue("mode").equals("tcp")) {
-										Client t = new Client((host+":"+port), sm.fileSystemManager);
+									if (Configuration.getConfigurationValue("mode").equals("tcp")) {
+										Client t = new Client((host + ":" + port), sm.fileSystemManager);
 										Thread.sleep(1000);
 										status = t.thR()[0].isAlive();
-									} else if (Configuration.getConfigurationValue("mode").equals("udp")){
-										for(int j=0;j<Integer.parseInt(Configuration.getConfigurationValue("udpRetries"));j++) {
+									} else if (Configuration.getConfigurationValue("mode").equals("udp")) {
+										for (int j = 0; j < Integer
+												.parseInt(Configuration.getConfigurationValue("udpRetries")); j++) {
 											new UDPResponse().sendHandshake(host, Integer.parseInt(port));
 											Thread.sleep(1000);
-											if(UDPResponse.status) {
+											if (UDPResponse.status) {
 												status = UDPResponse.status;
 												break;
 											}
 										}
 									}
-									if(status) {
+									if (status) {
 										Doc.append("status", status);
 										Doc.append("message", "connected to peer");
 									} else {
@@ -185,7 +188,7 @@ public class CmdHandler extends Thread {
 									String port = Document.parse(request).get("port").toString();
 									boolean status = false;
 									status = ServerMain.Disconnection(host, port);
-									if(status) {
+									if (status) {
 										Doc.append("status", status);
 										Doc.append("message", "disconnected from peer");
 									} else {

@@ -168,7 +168,7 @@ public class ServerMain implements FileSystemObserver {
 	public static boolean Disconnection(String host, String port) {
 		if(Configuration.getConfigurationValue("mode").equals("tcp")) {
 			for(int i=0; i<max ;i++){
-				if(th[i]!=null && th[i].Socket.getInetAddress().toString().equals(host)
+				if(th[i]!=null && th[i].Socket.getInetAddress().getHostAddress().equals(host)
 				  && Integer.toString(th[i].Socket.getPort()).equals(port) && th[i].isAlive()){
 					th[i].interrupt();
 					return true;
@@ -176,7 +176,7 @@ public class ServerMain implements FileSystemObserver {
 			}
 			if(thClient!=null) {
 				for(int i=0; i<thClient.length ;i++){
-					if(thClient[i]!=null && thClient[i].Socket.getInetAddress().toString().equals(host)
+					if(thClient[i]!=null && thClient[i].Socket.getInetAddress().getHostAddress().equals(host)
 							  && Integer.toString(thClient[i].Socket.getPort()).equals(port) && thClient[i].isAlive()){
 						thClient[i].interrupt();
 						return true;
