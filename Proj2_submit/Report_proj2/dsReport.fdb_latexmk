@@ -1,7 +1,7 @@
 # Fdb version 3
-["pdflatex"] 1559392308 "/Users/razr/Documents/dsProject/Proj2_submit/Report_proj2/dsReport.tex" "/Users/razr/Documents/dsProject/Proj2_submit/Report_proj2/dsReport.pdf" "dsReport" 1559392309
-  "/Users/razr/Documents/dsProject/Proj2_submit/Report_proj2/dsReport.aux" 1559392308 1041 076d91981abff57b092248be95a73876 ""
-  "/Users/razr/Documents/dsProject/Proj2_submit/Report_proj2/dsReport.tex" 1559392308 11055 889d2976ac9ddaf3f7d141379d6c23bd ""
+["pdflatex"] 1559393497 "/Users/razr/Documents/dsProject/Proj2_submit/Report_proj2/dsReport.tex" "/Users/razr/Documents/dsProject/Proj2_submit/Report_proj2/dsReport.pdf" "dsReport" 1559393498
+  "/Users/razr/Documents/dsProject/Proj2_submit/Report_proj2/dsReport.aux" 1559393498 1041 076d91981abff57b092248be95a73876 ""
+  "/Users/razr/Documents/dsProject/Proj2_submit/Report_proj2/dsReport.tex" 1559393497 11054 4074f1ec6a73dae31b402240a9a61f7c ""
   "/usr/local/texlive/2018/texmf-dist/fonts/map/fontname/texfonts.map" 1511824771 3332 103109f5612ad95229751940c61aada0 ""
   "/usr/local/texlive/2018/texmf-dist/fonts/tfm/public/cm/cmbx12.tfm" 1480098701 1324 c910af8c371558dc20f2d7822f66fe64 ""
   "/usr/local/texlive/2018/texmf-dist/fonts/tfm/public/cm/cmmi12.tfm" 1480098701 1524 4414a8315f39513458b80dfc63bff03a ""
@@ -61,12 +61,12 @@
   "/usr/local/texlive/2018/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1523934492 2717033 f61a5287d9c22a39a74f1979fe3f905c ""
   "/usr/local/texlive/2018/texmf-var/web2c/pdftex/pdflatex.fmt" 1535816673 4220279 da6e42b3c88c87ef558f625c8180ff9c ""
   "/usr/local/texlive/2018/texmf.cnf" 1523934483 577 0b39adfd7c93507ff20c9c14c2f1a33f ""
-  "dsReport.aux" 1559392308 1041 076d91981abff57b092248be95a73876 ""
-  "dsReport.tex" 1559392308 11055 889d2976ac9ddaf3f7d141379d6c23bd ""
+  "dsReport.aux" 1559393498 1041 076d91981abff57b092248be95a73876 ""
+  "dsReport.tex" 1559393497 11054 4074f1ec6a73dae31b402240a9a61f7c ""
   "pic.jpeg" 1559391881 32777 68f812c08351191cb2b0fbba884fd8d9 ""
   (generated)
-  "dsReport.pdf"
+  "/Users/razr/Documents/dsProject/Proj2_submit/Report_proj2/dsReport.log"
   "dsReport.aux"
+  "dsReport.pdf"
   "dsReport.log"
   "/Users/razr/Documents/dsProject/Proj2_submit/Report_proj2/dsReport.pdf"
-  "/Users/razr/Documents/dsProject/Proj2_submit/Report_proj2/dsReport.log"
